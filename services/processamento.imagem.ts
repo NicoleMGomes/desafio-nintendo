@@ -9,26 +9,26 @@ export async function aplicaEfeitoImagem(
   let response
 
   switch (efeito) {
-    case 'espelhar_verticalmente':
-      response = espelhamentoVertical(image)
+    case 'grayscale_gauss':
+      response = grayscaleGauss(image)
       break
-    case 'espelhar_horizontalmente':
-      response = espelhamentoHorizonal(image)
+    case 'brilho':
+      response = brilho(image, -20)
       break
-    case 'deslocar_horizontalmente':
-      response = deslocamento(image, 100, 0)
+    case 'deteccao_borda':
+      response = sobel(image)
       break
-    case 'aumentar':
-      response = redimensionamento(image, 2, 2)
+    case 'contraste':
+      response = contraste(image, -30)
       break
-    case 'reduzir':
-      response = redimensionamento(image, 1 / 2, 1 / 2)
+    case 'mediana':
+      response = mediana(image)
       break
-    case 'rotacionar':
-      response = rotacionamento(image, 45)
+    case 'negativo':
+      response = negativo(image)
       break
     default:
-      response = espelhamentoVertical(image)
+      response = grayscaleGauss(image)
       break
   }
 
@@ -38,48 +38,28 @@ export async function aplicaEfeitoImagem(
   return url
 }
 
-export function redimensionamento(
-  image: Jimp,
-  sizeX: number,
-  sizeY: number
-): Jimp {
-  return transform(image, [
-    [1 / sizeX, 0, 0],
-    [0, 1 / sizeY, 0],
-    [0, 0, 1],
-  ])
+export function grayscaleGauss(image: Jimp): Jimp {
+  return image
 }
 
-export function espelhamentoHorizonal(image: Jimp): Jimp {
-  return transform(image, [
-    [-1, 0, 0],
-    [0, 1, 0],
-    [0, 0, 1],
-  ])
+export function brilho(image: Jimp, brightness: number): Jimp {
+  return image
 }
 
-export function espelhamentoVertical(image: Jimp): Jimp {
-  return transform(image, [
-    [1, 0, 0],
-    [0, -1, 0],
-    [0, 0, 1],
-  ])
+export function sobel(image: Jimp): Jimp {
+  return image
 }
 
-export function rotacionamento(image: Jimp, angle: number): Jimp {
-  return transform(image, [
-    [Math.cos(toRad(angle)), Math.sin(toRad(angle)), 0],
-    [-Math.sin(toRad(angle)), Math.cos(toRad(angle)), 0],
-    [0, 0, 1],
-  ])
+export function contraste(image: Jimp, contrast: number): Jimp {
+  return image
 }
 
-export function deslocamento(image: Jimp, x: number, y: number): Jimp {
-  return transform(image, [
-    [1, 0, -x],
-    [0, 1, -y],
-    [0, 0, 1],
-  ])
+export function mediana(image: Jimp): Jimp {
+  return image
+}
+
+export function negativo(image: Jimp): Jimp {
+  return image
 }
 
 function transform(image: Jimp, kernel: number[][]): Jimp {
