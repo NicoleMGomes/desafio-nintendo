@@ -102,14 +102,6 @@ export function contraste(image: Jimp, contrast: number): Jimp {
   return response
 }
 
-export function mediana(image: Jimp): Jimp {
-  return image
-}
-
-export function negativo(image: Jimp): Jimp {
-  return image
-}
-
 function getPixelColor(value: number) {
 
   if(value > 255) {
@@ -141,4 +133,98 @@ function computePixel(image:Jimp, channel:number, x:number, y:number) :number {
   
   const value = Math.floor(Math.sqrt(Math.pow(gradientX, 2) + Math.pow(gradientY, 2)));
   return getPixelColor(value);
+}
+
+export function mediana(image: Jimp): Jimp {
+  const response = image.clone()
+
+  for (const { x, y } of image.scanIterator(
+    0,
+    0,
+    image.bitmap.width,
+    image.bitmap.height
+  )) {
+    //TODO: ajustar implementação
+    const pixelColor = Jimp.intToRGBA(image.getPixelColor(x, y))
+
+    const novoValorPixel: any = calculaMedianaVizinhos(x, y, image)
+
+    response.setPixelColor(
+      Jimp.rgbaToInt(
+        novoValorPixel.red,
+        novoValorPixel.green,
+        novoValorPixel.blue,
+        pixelColor.a
+      ),
+      x,
+      y
+    )
+  }
+
+  return response
+}
+
+function calculaMedianaVizinhos(x: number, y: number, image: Jimp): any {
+  const valoresVerde: Array<number> = []
+  const valoresVermelho: Array<number> = []
+  const valoresAzul: Array<number> = []
+  let index = 0
+
+  //matriz  3x3
+  for (let lx = x - 1; lx <= x + 1; lx++) {
+    for (let ly = y - 1; ly <= y + 1; ly++) {
+      //se o pixel n está em (0,0) ou (tam, tam) - bordas
+      if (x > 0 || y > 0 || x < image.getWidth() || y < image.getHeight()) {
+        const pixelColor = Jimp.intToRGBA(image.getPixelColor(lx, ly))
+        valoresVerde[index] = pixelColor.g
+        valoresVermelho[index] = pixelColor.r
+        valoresAzul[index] = pixelColor.b
+
+        index++
+      }
+    }
+  }
+
+  return calculaValorCentral(valoresVerde, valoresVermelho, valoresAzul)
+}
+
+function calculaValorCentral(
+  valoresVerde: Array<number>,
+  valoresVermelho: Array<number>,
+  valoresAzul: Array<number>
+): any {
+  valoresAzul.sort()
+  valoresVerde.sort()
+  valoresVermelho.sort()
+
+  return {
+    red: valoresVermelho[Math.floor(valoresVermelho.length / 2)],
+    green: valoresVerde[Math.floor(valoresVerde.length / 2)],
+    blue: valoresAzul[Math.floor(valoresAzul.length / 2)],
+  }
+}
+
+export function negativo(image: Jimp): Jimp {
+  const response = image.clone()
+
+  for (const { x, y } of image.scanIterator(
+    0,
+    0,
+    image.bitmap.width,
+    image.bitmap.height
+  )) {
+    const pixelColor = Jimp.intToRGBA(image.getPixelColor(x, y))
+    response.setPixelColor(
+      Jimp.rgbaToInt(
+        255 - pixelColor.r,
+        255 - pixelColor.g,
+        255 - pixelColor.b,
+        pixelColor.a
+      ),
+      x,
+      y
+    )
+  }
+
+  return response
 }
