@@ -43,7 +43,23 @@ export function grayscaleGauss(image: Jimp): Jimp {
 }
 
 export function brilho(image: Jimp, brightness: number): Jimp {
-  return image
+  
+  const response = image.clone()
+
+  for (const { x, y } of image.scanIterator(
+    0,
+    0,
+    image.bitmap.width,
+    image.bitmap.height
+  )) {
+    const pixelColor = Jimp.intToRGBA(image.getPixelColor(x, y))
+    const r = getPixelColor(pixelColor.r + brightness)
+    const g = getPixelColor(pixelColor.g + brightness)
+    const b = getPixelColor(pixelColor.b + brightness)
+    response.setPixelColor(Jimp.rgbaToInt(r, g, b, pixelColor.a), x, y)
+  }
+  
+  return response
 }
 
 export function sobel(image: Jimp): Jimp {
@@ -78,8 +94,17 @@ function transform(image: Jimp, kernel: number[][]): Jimp {
   return response
 }
 
-function toRad(Value: number) {
-  return (Value * Math.PI) / 180
+function getPixelColor(value: number) {
+
+  if(value > 255) {
+    return 255
+  }
+
+  if(value < 0) {
+    return 0
+  } 
+
+  return value 
 }
 
 function applyKernel(
