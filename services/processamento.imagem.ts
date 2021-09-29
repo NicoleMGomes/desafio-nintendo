@@ -19,7 +19,7 @@ export async function aplicaEfeitoImagem(
       response = sobel(image)
       break
     case 'contraste':
-      response = contraste(image, -30)
+      response = contraste(image, 0.3)
       break
     case 'mediana':
       response = mediana(image)
@@ -67,18 +67,7 @@ export function sobel(image: Jimp): Jimp {
 }
 
 export function contraste(image: Jimp, contrast: number): Jimp {
-  return image
-}
 
-export function mediana(image: Jimp): Jimp {
-  return image
-}
-
-export function negativo(image: Jimp): Jimp {
-  return image
-}
-
-function transform(image: Jimp, kernel: number[][]): Jimp {
   const response = image.clone()
 
   for (const { x, y } of image.scanIterator(
@@ -87,11 +76,22 @@ function transform(image: Jimp, kernel: number[][]): Jimp {
     image.bitmap.width,
     image.bitmap.height
   )) {
-    response.setPixelColor(Jimp.cssColorToHex('#ffffff'), x, y)
-    applyKernel(image, response, kernel, x, y)
+    const pixelColor = Jimp.intToRGBA(image.getPixelColor(x, y))
+    const r = getPixelColor(pixelColor.r * contrast)
+    const g = getPixelColor(pixelColor.g * contrast)
+    const b = getPixelColor(pixelColor.b * contrast)
+    response.setPixelColor(Jimp.rgbaToInt(r, g, b, pixelColor.a), x, y)
   }
-
+  
   return response
+}
+
+export function mediana(image: Jimp): Jimp {
+  return image
+}
+
+export function negativo(image: Jimp): Jimp {
+  return image
 }
 
 function getPixelColor(value: number) {
@@ -105,37 +105,4 @@ function getPixelColor(value: number) {
   } 
 
   return value 
-}
-
-function applyKernel(
-  image: Jimp,
-  response: Jimp,
-  kernel: number[][],
-  x: number,
-  y: number
-) {
-  const halfX = image.getWidth() / 2
-  const halfY = image.getHeight() / 2
-  const tmpX = x - halfX
-  const tmpY = y - halfY
-
-  let newX = Math.round(
-    tmpX * kernel[0][0] + tmpY * kernel[0][1] + 1 * kernel[0][2]
-  )
-
-  let newY = Math.round(
-    tmpX * kernel[1][0] + tmpY * kernel[1][1] + 1 * kernel[1][2]
-  )
-
-  newX += halfX
-  newY += halfY
-
-  if (
-    newX < image.getWidth() &&
-    newY < image.getHeight() &&
-    newX >= 0 &&
-    newY >= 0
-  ) {
-    response.setPixelColor(image.getPixelColor(newX, newY), x, y)
-  }
 }
