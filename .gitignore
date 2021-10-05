@@ -32,4 +32,6 @@ yarn-error.log*
 
 # images
 public/input/*
+!public/input/.gitkeep 
 public/output/*
+!public/output/.gitkeep 

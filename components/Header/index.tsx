@@ -6,7 +6,7 @@ const Header: React.FC = () => {
   return (
     <Container>
       <img src="/logo.png" alt="Logo de quadro"></img>
-      <h1>Desafio dos Quadros</h1>
+      <h1>Desafio da Nintendo</h1>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         version="1.1"
