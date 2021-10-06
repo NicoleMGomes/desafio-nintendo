@@ -9,8 +9,8 @@ export const Container = styled.div`
 
   img {
     margin: 30px;
-    width: 30vw;
-    height: auto;
+    width: auto;
+    height: 40vh;
   }
 
   select {
