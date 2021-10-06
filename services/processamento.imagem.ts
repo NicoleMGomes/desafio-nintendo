@@ -39,11 +39,44 @@ export async function aplicaEfeitoImagem(
 }
 
 export function grayscaleGauss(image: Jimp): Jimp {
-  return image
+  const response = image.clone()
+
+  //transforma o response em tons de cinza
+  for (const { x, y } of image.scanIterator(
+    0,
+    0,
+    image.bitmap.width,
+    image.bitmap.height
+  )) {
+    const pixelColor = Jimp.intToRGBA(image.getPixelColor(x, y))
+    const cinza = Math.round((pixelColor.r + pixelColor.b + pixelColor.g) / 3)
+    response.setPixelColor(
+      Jimp.rgbaToInt(cinza, cinza, cinza, pixelColor.a),
+      x,
+      y
+    )
+  }
+
+  //aplica filtro de gauss no response em tons de cinza
+  for (const { x, y } of response.scanIterator(
+    1,
+    1,
+    response.bitmap.width - 1,
+    response.bitmap.height - 1
+  )) {
+    const pixelColor = Jimp.intToRGBA(response.getPixelColor(x, y))
+    const novoValor = computePixelGauss(response, x, y)
+    response.setPixelColor(
+      Jimp.rgbaToInt(novoValor, novoValor, novoValor, pixelColor.a),
+      x,
+      y
+    )
+  }
+
+  return response
 }
 
 export function brilho(image: Jimp, brightness: number): Jimp {
-  
   const response = image.clone()
 
   for (const { x, y } of image.scanIterator(
@@ -58,12 +91,11 @@ export function brilho(image: Jimp, brightness: number): Jimp {
     const b = getPixelColor(pixelColor.b + brightness)
     response.setPixelColor(Jimp.rgbaToInt(r, g, b, pixelColor.a), x, y)
   }
-  
+
   return response
 }
 
 export function sobel(image: Jimp): Jimp {
- 
   const response = image.clone()
 
   for (const { x, y } of image.scanIterator(
@@ -75,15 +107,14 @@ export function sobel(image: Jimp): Jimp {
     const pixelColor = Jimp.intToRGBA(image.getPixelColor(x, y))
     const r = computePixel(image, 0, x, y)
     const g = computePixel(image, 1, x, y)
-    const b = computePixel(image, 2, x, y);
+    const b = computePixel(image, 2, x, y)
     response.setPixelColor(Jimp.rgbaToInt(r, g, b, pixelColor.a), x, y)
   }
-  
+
   return response
 }
 
 export function contraste(image: Jimp, contrast: number): Jimp {
-
   const response = image.clone()
 
   for (const { x, y } of image.scanIterator(
@@ -98,7 +129,7 @@ export function contraste(image: Jimp, contrast: number): Jimp {
     const b = getPixelColor(pixelColor.b * contrast)
     response.setPixelColor(Jimp.rgbaToInt(r, g, b, pixelColor.a), x, y)
   }
-  
+
   return response
 }
 
@@ -111,34 +142,77 @@ export function negativo(image: Jimp): Jimp {
 }
 
 function getPixelColor(value: number) {
-
-  if(value > 255) {
+  if (value > 255) {
     return 255
   }
 
-  if(value < 0) {
+  if (value < 0) {
     return 0
-  } 
+  }
 
-  return value 
+  return value
 }
 
-function computePixel(image:Jimp, channel:number, x:number, y:number) :number {
-
-  const xMask = [[1, 0, -1], [2, 0, -2], [1, 0, -1]];
-  const yMask = [[1, 2, 1], [0, 0, 0], [-1, -2, -1]];
-  let gradientX = 0;
-  let gradientY = 0;
+function computePixel(
+  image: Jimp,
+  channel: number,
+  x: number,
+  y: number
+): number {
+  const xMask = [
+    [1, 0, -1],
+    [2, 0, -2],
+    [1, 0, -1],
+  ]
+  const yMask = [
+    [1, 2, 1],
+    [0, 0, 0],
+    [-1, -2, -1],
+  ]
+  let gradientX = 0
+  let gradientY = 0
 
   for (let lx = 0; lx < 3; lx++) {
     for (let ly = 0; ly < 3; ly++) {
-        const pixelColor = Jimp.intToRGBA(image.getPixelColor(x + lx - 1, y + ly - 1))
-        const pixelColorNumber = channel === 0 ? pixelColor.r : channel === 1 ? pixelColor.g : pixelColor.b;
-        gradientX += pixelColorNumber * xMask[lx][ly]
-        gradientY += pixelColorNumber * yMask[lx][ly]
+      const pixelColor = Jimp.intToRGBA(
+        image.getPixelColor(x + lx - 1, y + ly - 1)
+      )
+      const pixelColorNumber =
+        channel === 0
+          ? pixelColor.r
+          : channel === 1
+          ? pixelColor.g
+          : pixelColor.b
+      gradientX += pixelColorNumber * xMask[lx][ly]
+      gradientY += pixelColorNumber * yMask[lx][ly]
     }
   }
-  
-  const value = Math.floor(Math.sqrt(Math.pow(gradientX, 2) + Math.pow(gradientY, 2)));
-  return getPixelColor(value);
+
+  const value = Math.floor(
+    Math.sqrt(Math.pow(gradientX, 2) + Math.pow(gradientY, 2))
+  )
+  return getPixelColor(value)
+}
+
+function computePixelGauss(image: Jimp, x: number, y: number): number {
+  const mask = [
+    [1, 2, 1],
+    [2, 4, 2],
+    [1, 2, 1],
+  ]
+  const constanteDivisora = 16
+  let novoValor = 0
+
+  for (let lx = 0; lx < 3; lx++) {
+    for (let ly = 0; ly < 3; ly++) {
+      const pixelColor = Jimp.intToRGBA(
+        image.getPixelColor(x + lx - 1, y + ly - 1)
+      )
+      const pixelColorNumber = pixelColor.r
+      novoValor += pixelColorNumber * mask[lx][ly]
+    }
+  }
+
+  const value = novoValor / constanteDivisora
+  return getPixelColor(value)
 }
