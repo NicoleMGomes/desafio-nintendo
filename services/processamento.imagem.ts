@@ -251,26 +251,25 @@ function computePixel(
   return getPixelColor(value)
 }
 
-
 function computePixelGauss(image: Jimp, x: number, y: number): number {
-    const mask = [
-      [1, 2, 1],
-      [2, 4, 2],
-      [1, 2, 1],
-    ]
-    const constanteDivisora = 16
-    let novoValor = 0
-  
-    for (let lx = 0; lx < 3; lx++) {
-      for (let ly = 0; ly < 3; ly++) {
-        const pixelColor = Jimp.intToRGBA(
-          image.getPixelColor(x + lx - 1, y + ly - 1)
-        )
-        const pixelColorNumber = pixelColor.r
-        novoValor += pixelColorNumber * mask[lx][ly]
-      }
+  const mask = [
+    [1, 2, 1],
+    [2, 4, 2],
+    [1, 2, 1],
+  ]
+  const constanteDivisora = 16
+  let novoValor = 0
+
+  for (let lx = 0; lx < 3; lx++) {
+    for (let ly = 0; ly < 3; ly++) {
+      const pixelColor = Jimp.intToRGBA(
+        image.getPixelColor(x + lx - 1, y + ly - 1)
+      )
+      const pixelColorNumber = pixelColor.r
+      novoValor += pixelColorNumber * mask[lx][ly]
     }
-  
-    const value = novoValor / constanteDivisora
-    return getPixelColor(value)
   }
+
+  const value = novoValor / constanteDivisora
+  return getPixelColor(value)
+}
