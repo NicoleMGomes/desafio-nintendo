@@ -38,44 +38,43 @@ export async function aplicaEfeitoImagem(
   return url
 }
 
-
 export function grayscaleGauss(image: Jimp): Jimp {
-    const response = image.clone()
-  
-    //transforma o response em tons de cinza
-    for (const { x, y } of image.scanIterator(
-      0,
-      0,
-      image.bitmap.width,
-      image.bitmap.height
-    )) {
-      const pixelColor = Jimp.intToRGBA(image.getPixelColor(x, y))
-      const cinza = Math.round((pixelColor.r + pixelColor.b + pixelColor.g) / 3)
-      response.setPixelColor(
-        Jimp.rgbaToInt(cinza, cinza, cinza, pixelColor.a),
-        x,
-        y
-      )
-    }
-  
-    //aplica filtro de gauss no response em tons de cinza
-    for (const { x, y } of response.scanIterator(
-      1,
-      1,
-      response.bitmap.width - 1,
-      response.bitmap.height - 1
-    )) {
-      const pixelColor = Jimp.intToRGBA(response.getPixelColor(x, y))
-      const novoValor = computePixelGauss(response, x, y)
-      response.setPixelColor(
-        Jimp.rgbaToInt(novoValor, novoValor, novoValor, pixelColor.a),
-        x,
-        y
-      )
-    }
-  
-    return response
+  const response = image.clone()
+
+  //transforma o response em tons de cinza
+  for (const { x, y } of image.scanIterator(
+    1,
+    1,
+    image.bitmap.width - 1,
+    image.bitmap.height - 1
+  )) {
+    const pixelColor = Jimp.intToRGBA(image.getPixelColor(x, y))
+    const cinza = Math.round((pixelColor.r + pixelColor.b + pixelColor.g) / 3)
+    response.setPixelColor(
+      Jimp.rgbaToInt(cinza, cinza, cinza, pixelColor.a),
+      x,
+      y
+    )
   }
+
+  //aplica filtro de gauss no response em tons de cinza
+  for (const { x, y } of response.scanIterator(
+    1,
+    1,
+    response.bitmap.width - 1,
+    response.bitmap.height - 1
+  )) {
+    const pixelColor = Jimp.intToRGBA(response.getPixelColor(x, y))
+    const novoValor = computePixelGauss(response, x, y)
+    response.setPixelColor(
+      Jimp.rgbaToInt(novoValor, novoValor, novoValor, pixelColor.a),
+      x,
+      y
+    )
+  }
+
+  return response
+}
 
 export function brilho(image: Jimp, brightness: number): Jimp {
   const response = image.clone()
@@ -148,9 +147,11 @@ export function mediana(image: Jimp): Jimp {
     const blue: Array<number> = []
     let index = 0
 
-    for (let lx = x - 1; lx <= x + 1; lx++) {
-      for (let ly = y - 1; ly <= y + 1; ly++) {
-        const pixelColor = Jimp.intToRGBA(image.getPixelColor(lx, ly))
+    for (let lx = 0; lx < 3; lx++) {
+      for (let ly = 0; ly < 3; ly++) {
+        const pixelColor = Jimp.intToRGBA(
+          image.getPixelColor(x + lx - 1, y + ly - 1)
+        )
         red[index] = pixelColor.r
         green[index] = pixelColor.g
         blue[index] = pixelColor.b
@@ -158,9 +159,9 @@ export function mediana(image: Jimp): Jimp {
       }
     }
 
-    red.sort()
-    green.sort()
-    blue.sort()
+    red.sort((a, b) => a - b)
+    green.sort((a, b) => a - b)
+    blue.sort((a, b) => a - b)
 
     const r = red[Math.floor(red.length / 2)]
     const g = green[Math.floor(green.length / 2)]
@@ -175,6 +176,7 @@ export function mediana(image: Jimp): Jimp {
 
 export function negativo(image: Jimp): Jimp {
   const response = image.clone()
+  const valMax = 255
 
   for (const { x, y } of image.scanIterator(
     0,
@@ -185,9 +187,9 @@ export function negativo(image: Jimp): Jimp {
     const pixelColor = Jimp.intToRGBA(image.getPixelColor(x, y))
     response.setPixelColor(
       Jimp.rgbaToInt(
-        255 - pixelColor.r,
-        255 - pixelColor.g,
-        255 - pixelColor.b,
+        valMax - pixelColor.r,
+        valMax - pixelColor.g,
+        valMax - pixelColor.b,
         pixelColor.a
       ),
       x,
